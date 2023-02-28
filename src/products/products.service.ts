@@ -80,12 +80,23 @@ export class ProductsService {
     if ( !product ) throw new NotFoundException (`Product with id ${id} not found`);
     
     const queryRunner = this.dataSource.createQueryRunner();
-    
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
     
     try {
-      await this.productRepository.save( product );
-      return product;      
+
+      if( images ) {
+        await queryRunner.manager.delete( ProductImage, { product: {id} });
+        product.images = images.map( image => this.productImageRepository.create({url: image}))
+      } 
+      await queryRunner.manager.save( product );
+      await queryRunner.commitTransaction();
+      await queryRunner.release();
+      // await this.productRepository.save( product ); ///si se usa el queryrunner ya no se necesita salvar de esta manera
+      return this.findOnePlain( id );      
     } catch (error) {
+      await queryRunner.rollbackTransaction();
+      await queryRunner.release();
       this.handleDBExeptions(error);
     }
   }
@@ -102,5 +113,17 @@ export class ProductsService {
     console.log(error)
     this.logger.error(error)
     throw new InternalServerErrorException('Unexpected error, check server logs');  
+  }
+
+  async deleteAllProducts(){
+    const query = this.productRepository.createQueryBuilder('product');
+    try {
+      return await query
+      .delete()
+      .where({})
+      .execute();
+    } catch (error) {
+      this.handleDBExeptions(error);
+    }
   }
 }

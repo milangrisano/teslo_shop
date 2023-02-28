@@ -12,6 +12,11 @@
 ```
 docker-compose up -d
 ```
+6. Precargar la base de datos con informacion seed
+```
+http://localhost:3000/api/seed
+```
+
 6. Inicializar el proyecto en modo de desarrollo:
  ```
  yarn start:dev
