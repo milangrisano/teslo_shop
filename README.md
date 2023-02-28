@@ -12,7 +12,7 @@
 ```
 docker-compose up -d
 ```
-6. Levantar:
+6. Inicializar el proyecto en modo de desarrollo:
  ```
  yarn start:dev
  ```
